@@ -4,6 +4,8 @@ import br.edu.ifc.bikes.dto.UsuarioRequestDTO;
 import br.edu.ifc.bikes.dto.UsuarioResponseDTO;
 import br.edu.ifc.bikes.dto.mapper.UsuarioMapper;
 import br.edu.ifc.bikes.entity.Usuario;
+import br.edu.ifc.bikes.exception.EntityNotFoundException;
+import br.edu.ifc.bikes.exception.UsernameUniqueViolationException;
 import br.edu.ifc.bikes.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,20 @@ public class UsuarioService {
     private final UsuarioMapper usuarioMapper;
 
     public UsuarioResponseDTO create(UsuarioRequestDTO usuarioRequestDTO) {
-        Usuario usuario = usuarioMapper.toUsuario(usuarioRequestDTO);
-        return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        try {
+            Usuario usuario = usuarioMapper.toUsuario(usuarioRequestDTO);
+            return usuarioMapper.toResponse(usuarioRepository.save(usuario));
+        }catch (RuntimeException ex){
+
+            throw new UsernameUniqueViolationException(String.format("O nome do usuário '%s' já existe", usuarioRequestDTO.username()));
+        }
     }
 
     @Transactional()
     public UsuarioResponseDTO getById(Long id) {
-        return usuarioMapper.toResponse(usuarioRepository.findById(id).orElse(null));
+        return usuarioMapper.toResponse(usuarioRepository.findById(id).orElseThrow(
+                ()->new EntityNotFoundException(String.format("Usuário com id=%d não encontrado", id))
+        ));
     }
 
     public UsuarioResponseDTO updatePassword(Long id, String password) {
