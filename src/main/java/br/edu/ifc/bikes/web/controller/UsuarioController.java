@@ -2,6 +2,7 @@ package br.edu.ifc.bikes.web.controller;
 
 import br.edu.ifc.bikes.dto.UsuarioRequestDTO;
 import br.edu.ifc.bikes.dto.UsuarioResponseDTO;
+import br.edu.ifc.bikes.dto.UsuarioSenhaDTO;
 import br.edu.ifc.bikes.service.UsuarioService;
 import br.edu.ifc.bikes.web.exception.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,7 +61,7 @@ public class UsuarioController {
     }
 
 
-    @Operation(summary = "Atualizar senha", description = "Atualizar senha",
+    @Operation(summary = "Atualizar senha", description = "Recurso para atualizar a senha. Requer a senha atual, a nova senha e a confirmação da nova senha",
         responses = {
                 @ApiResponse(responseCode = "204", description = "Senha atualizada com sucesso",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))),
@@ -73,13 +74,10 @@ public class UsuarioController {
         })
     //o PATCH deve ser utilizado, no lugar no PUT, quando a atualização for de poucos campos.
     @PatchMapping("/{id}")
-    public ResponseEntity<UsuarioResponseDTO> updatePassword(@PathVariable Long id, @RequestBody UsuarioRequestDTO usuario){
-        UsuarioResponseDTO updateUsuario = usuarioService.updatePassword(id, usuario.password());
-        if (updateUsuario != null){
-            return ResponseEntity.ok(updateUsuario);
-        }else{
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Void> updatePassword(@PathVariable Long id, @Valid @RequestBody UsuarioSenhaDTO senhaDTO){
+        usuarioService.updatePassword(id, senhaDTO.senhaAtual(), senhaDTO.novaSenha(), senhaDTO.confirmaSenha());
+        //204: a operação deu certo, mas não há conteúdo para retornar
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Listar todos os usuários", description = "Listar todos os usuários",

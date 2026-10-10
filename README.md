@@ -1,86 +1,35 @@
-### Documentação com SpringDoc OpenAPI 3.1 e Swagger 3
+### Banco de dados PostgreSQL
 
-- [Site oficial](https://springdoc.org/) - [Configuração](https://springdoc.org/#getting-started)
+O projeto foi configurado para usar o **PostgreSQL** no lugar do MySQL.
 
-Dependência (`pom.xml`):
+#### 1. Dependência (`pom.xml`)
 ```
    <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>3.1.1</version>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
    </dependency>
 ```
 
-`Application.properties`
+#### 2. Configuração (`application.properties`)
+A configuração do MySQL foi mantida, porém comentada. A configuração ativa é a do Postgres:
 ```
-   springdoc.swagger-ui.path=/docs-bikes.html
-   # Código gerado para acessar a documentação da API no Swagger UI: http://localhost:8080/docs-bikes.html
-   springdoc.api-docs.path=/docs-bikes
-   springdoc.packages-to-scan=br.edu.ifc.bikes.web.controller
+   # Postgres Config
+   spring.datasource.url=jdbc:postgresql://localhost:5432/Bikes
+   spring.datasource.username=postgres
+   spring.datasource.password=suaSenhaDoBanco
 ```
 
-- Criar a classe [SpringDocOpenApiConfig](src/main/java/br/edu/ifc/bikes/config/SpringDocOpenApiConfig.java) no pacote `config`.
+#### 3. Criar o banco
+Antes de executar o projeto, criar o banco `Bikes` no PostgreSQL. As tabelas são criadas automaticamente pelo `spring.jpa.hibernate.ddl-auto=update`.
 
-- Acessar a [documentação](http://localhost:8080/docs-bikes.html).
+#### 4. Executar
+- Substituir `suaSenhaDoBanco` pela senha do seu Postgres.
+- Recompilar e executar o projeto:
+```
+   mvnw clean compile
+   mvnw spring-boot:run
+```
 
-#### Acrescentando informações em Usuário
-
-- Em [UsuarioController](src/main/java/br/edu/ifc//bikes/web/controller/UsuarioController.java):
-   - No cabeçalho
-   ```
-   @Tag(name = "Usuarios", description = "Contém todas as operações relativas aos recursos para cadastro, edição e leitura de um usuário.")
-   ```
-
-   - Em `create()`
-   ```
-   @Operation(summary = "Criar um novo usuário", description = "Recurso para criar um novo usuário",
-            responses = {
-                @ApiResponse(responseCode = "201", description = "Recurso criado com sucesso",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioResponseDTO.class))),
-                @ApiResponse(responseCode = "409", description = "Usuário e-mail já cadastrado no sistema",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
-                @ApiResponse(responseCode = "422", description = "Recurso não processado por dados de entrada invalidos",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class)))
-            })
-   ```
-
-   - Em `getById()`
-   ```
-   @Operation(summary = "Recuperar um usuário pelo id", description = "Recuperar um usuário pelo id",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Recurso recuperado com sucesso",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioResponseDTO.class))),
-                    @ApiResponse(responseCode = "404", description = "Recurso não encontrado",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class)))
-            })
-   ```
-
-   - Em `updatePassword()`
-   ```
-   @Operation(summary = "Atualizar senha", description = "Atualizar senha",
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "Senha atualizada com sucesso",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class))),
-                    @ApiResponse(responseCode = "400", description = "Senha não confere",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
-                    @ApiResponse(responseCode = "404", description = "Recurso não encontrado",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class)))
-            })
-   ```
-
-   - Em `getAll()`
-   ```
-   @Operation(summary = "Listar todos os usuários", description = "Listar todos os usuários",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Lista com todos os usuários cadastrados",
-                                    content = @Content(mediaType = "application/json",
-                                    array = @ArraySchema(schema = @Schema(implementation = UsuarioResponseDto.class))))
-            })
-   ```
-  
-## Atividade - Alterar Senha
-
-  - Modificar a **alteração de senha** para que, além do campo `nova senha`, seja informado também a `confirmação de senha` e a `senha atual`.
-  - Será necessário criar a classe `UsuarioSenhaDTO.java` para requisição.
-    - Não esquecer de validar os campos.
-  - Fazer o tratamento de exceção criando a classe `PasswordInvalidException` para validar a senha atual e comparar a nova senha com a confirmação.
+#### Voltar para o MySQL
+Basta descomentar o bloco `MYSQL Config` e comentar o bloco `Postgres Config` no `application.properties`.
